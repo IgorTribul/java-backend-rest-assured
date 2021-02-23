@@ -7,7 +7,7 @@ import io.qameta.allure.Story;
 import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 
-public class UploadImageNegativeTests extends BaseTest{
+public class PostImageNegativeTests extends BaseTest{
 
     @Epic(value = "Проверка API загрузки изображений")
     @Feature(value = "Загрузка нового изображения, негативный тест")
@@ -15,16 +15,17 @@ public class UploadImageNegativeTests extends BaseTest{
     @Test
     @Description(value = "Пользователь пытается загрузить файл с резмером, " +
             "превышающим максимально допустимый")
-    void uploadBigFileNegativeNegativeTest() {
+    void postBigFileNegativeTest() {
         given()
-                .headers(headers)
+                .spec(reqSpecAuth)
                 .body(bigFile)
                 .log()
                 .all()
                 .when()
-                .post("/image")
+                .post(Endpoints.getPostImageRequest())
                 .prettyPeek()
                 .then()
+                .spec(respSpecNegativeTest)
                 .statusCode(400);
     }
 
@@ -33,14 +34,14 @@ public class UploadImageNegativeTests extends BaseTest{
     @Story(value = "Пользователь авторизован")
     @Test
     @Description(value = "Неверно указан эндпойнт")
-    void uploadBadEndpointNegativeTest() {
+    void postWithBadEndpointNegativeTest() {
         given()
-                .headers(headers)
-                .body(jpgFile)
+                .spec(reqSpecAuth)
+                .body(positiveFile)
                 .log()
                 .all()
                 .when()
-                .post("/image777")
+                .post(Endpoints.getBadEndpointRequest())
                 .prettyPeek()
                 .then()
                 .statusCode(404);
@@ -53,14 +54,15 @@ public class UploadImageNegativeTests extends BaseTest{
     @Description(value = "Пользователь пытается загрузить недопустимый тип файла ")
     void uploadNotImageFileNegativeTest() {
         given()
-                .headers(headers)
-                .body("src/test/resources/error.log")
+                .spec(reqSpecAuth)
+                .body(badFile)
                 .log()
                 .all()
                 .when()
-                .post("/image")
+                .post(Endpoints.getPostImageRequest())
                 .prettyPeek()
                 .then()
+                .spec(respSpecNegativeTest)
                 .statusCode(400);
     }
 
@@ -70,13 +72,15 @@ public class UploadImageNegativeTests extends BaseTest{
     @Test
     void uploadImageNoauthNegativeTest() {
         given()
-                .body(jpgFile)
+                .spec(reqSpecNoauth)
+                .body(positiveFile)
                 .log()
                 .all()
                 .when()
-                .post("/image")
+                .post(Endpoints.getPostImageRequest())
                 .prettyPeek()
                 .then()
-                .statusCode(401);
+                .spec(respSpecNegativeTest)
+                .statusCode(403);
     }
 }

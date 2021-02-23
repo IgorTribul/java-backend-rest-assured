@@ -7,51 +7,32 @@ import io.qameta.allure.Story;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.util.Base64;
 import static io.restassured.RestAssured.given;
 
-public class UploadImagePositiveTests extends BaseTest{
+public class PostImagePositiveTests extends BaseTest{
     private String deleteHash;
+    String fileString = Base64.getEncoder().encodeToString(getFileContent());
+
 
     @Epic(value = "Проверка API загрузки изображений")
     @Feature(value = "Загрузка нового изображения, позитивный тест")
     @Story(value = "Пользователь авторизован")
     @Test
     @Description(value = "Загрузка jpeg-файла")
-    void uploadFileTypeJpgNormalSizePositive(){
+    void uploadImagePositiveTest(){
         deleteHash = given()
-                .headers(headers)
+                .spec(reqSpecAuth)
                 .log()
                 .all()
-                .body(jpgFile)
+                .body(positiveFile)
                 .when()
-                .post("/image")
+                .post(Endpoints.getPostImageRequest())
                 .prettyPeek()
                 .then()
-                .statusCode(200)
-                .extract()
-                .response()
-                .jsonPath()
-                .getString("data.deletehash");
-    }
-
-    @Epic(value = "Проверка API загрузки изображений")
-    @Feature(value = "Загрузка нового изображения, позитивный тест")
-    @Story(value = "Пользователь авторизован")
-    @Test
-    @Description(value = "Загрузка png-файла")
-    void uploadFileTypePngNormalSizePositive(){
-        deleteHash = given()
-                .headers(headers)
-                .log()
-                .all()
-                .body(pngFile)
-                .when()
-                .post("/image")
-                .prettyPeek()
-                .then()
-                .statusCode(200)
+                .spec(respSpecPositiveTest)
                 .extract()
                 .response()
                 .jsonPath()
@@ -63,17 +44,17 @@ public class UploadImagePositiveTests extends BaseTest{
     @Story(value = "Пользователь авторизован")
     @Test
     @Description(value = "Загрузка файла 1x1 pixel")
-    void uploadTestFileTypeJpgSmalSizePositive(){
+    void uploadSmallImagePositiveTest(){
         deleteHash = given()
-                .headers(headers)
+                .spec(reqSpecAuth)
                 .log()
                 .all()
                 .body(smallFile)
                 .when()
-                .post("/image")
+                .post(Endpoints.getPostImageRequest())
                 .prettyPeek()
                 .then()
-                .statusCode(200)
+                .spec(respSpecPositiveTest)
                 .extract()
                 .response()
                 .jsonPath()
@@ -85,17 +66,17 @@ public class UploadImagePositiveTests extends BaseTest{
     @Story(value = "Пользователь авторизован")
     @Test
     @Description(value = "Загрузка бинарного файла")
-    void uploadBinaryFilePositive(){
+    void uploadBinaryFilePositiveTest(){
         deleteHash = given()
-                .headers(headers)
+                .spec(reqSpecAuth)
                 .log()
                 .body()
                 .body(getFileContent())
                 .when()
-                .post("/image")
+                .post(Endpoints.getPostImageRequest())
                 .prettyPeek()
                 .then()
-                .statusCode(200)
+                .spec(respSpecPositiveTest)
                 .extract()
                 .response()
                 .jsonPath()
@@ -107,18 +88,17 @@ public class UploadImagePositiveTests extends BaseTest{
     @Story(value = "Пользователь авторизован")
     @Test
     @Description(value = "Загрузка Base64 файла")
-    void uploadBase64FilePositive(){
-        String fileString = Base64.getEncoder().encodeToString(getFileContent());
+    void uploadBase64FilePositiveTest(){
         deleteHash = given()
-                .headers(headers)
+                .spec(reqSpecAuth)
                 .multiPart("image", fileString)
                 .log()
                 .all()
                 .when()
-                .post("/image")
+                .post(Endpoints.getPostImageRequest())
                 .prettyPeek()
                 .then()
-                .statusCode(200)
+                .spec(respSpecPositiveTest)
                 .extract()
                 .response()
                 .jsonPath()
@@ -132,16 +112,15 @@ public class UploadImagePositiveTests extends BaseTest{
                 .log()
                 .all()
                 .when()
-                .delete("/image/{deleteHash}", deleteHash)
+                .delete(Endpoints.getDeleteImageRequest(), deleteHash)
                 .prettyPeek()
                 .then()
                 .statusCode(200);
     }
-
-    private byte[] getFileContent (){
+    protected byte[] getFileContent (){
         byte[] fileContent = new byte[0];
         try {
-            fileContent = FileUtils.readFileToByteArray(jpgFile);
+            fileContent = FileUtils.readFileToByteArray(positiveFile);
         } catch (IOException e) {
             e.printStackTrace();
         }

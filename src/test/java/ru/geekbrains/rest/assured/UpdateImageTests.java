@@ -1,31 +1,30 @@
 package ru.geekbrains.rest.assured;
 
+import com.github.javafaker.Faker;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.geekbrains.rest.assured.steps.CommonRequest;
+
 import static io.restassured.RestAssured.given;
 
 public class UpdateImageTests extends BaseTest {
-
     private String id;
+    RequestSpecification reqSpecUpdate = null;
+    Faker faker = new Faker();
 
     @BeforeEach
     void setUp() {
-        id = given()
-                .headers(headers)
-                .body(jpgFile)
-                .when()
-                .post("/image")
-                .prettyPeek()
-                .then()
-                .statusCode(200)
-                .extract()
-                .response()
-                .jsonPath()
-                .getString("data.id");
+        reqSpecUpdate = new RequestSpecBuilder()
+                .addMultiPart("title", faker.chuckNorris().fact())
+                .addMultiPart("description", faker.harryPotter().quote())
+                .build();
+        id = new CommonRequest().uploadCommonImage().getData().getId();
     }
 
     @Epic(value = "Проверка API загрузки изображений")
@@ -35,14 +34,14 @@ public class UpdateImageTests extends BaseTest {
     void updateImagePositiveTest(){
         given()
                 .headers(headers)
-                .params("title", "beautiful flower")
-                .params("description", "attempt to change the description")
+                .spec(reqSpecUpdate)
                 .log()
                 .all()
                 .when()
-                .post("/image/{id}", id)
+                .post(Endpoints.getGetImageRequest(), id)
                 .prettyPeek()
                 .then()
+                .spec(respSpecPositiveTest)
                 .statusCode(200);
     }
 
@@ -52,12 +51,11 @@ public class UpdateImageTests extends BaseTest {
     @Test
     void updateImageNoauthNegativeTest(){
         given()
-                .params("title", "beautiful flower")
-                .params("description", "attempt to change the description")
+                .spec(reqSpecUpdate)
                 .log()
                 .all()
                 .when()
-                .post("/image/{id}", id)
+                .post(Endpoints.getGetImageRequest(), id)
                 .prettyPeek()
                 .then()
                 .statusCode(401);
@@ -70,7 +68,7 @@ public class UpdateImageTests extends BaseTest {
                 .log()
                 .all()
                 .when()
-                .delete("/image/{id}", id)
+                .delete(Endpoints.getGetImageRequest(), id)
                 .prettyPeek()
                 .then()
                 .statusCode(200);

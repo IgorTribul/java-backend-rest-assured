@@ -4,11 +4,19 @@ import io.qameta.allure.Description;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import ru.geekbrains.rest.assured.steps.CommonRequest;
+
 import static io.restassured.RestAssured.given;
 
 public class DeleteImageTests extends BaseTest {
     private static String deleteHash;
+
+    @BeforeAll
+    static void beforeAllDeleteTests() {
+        deleteHash = new CommonRequest().uploadCommonImage().getData().getDeletehash();
+    }
 
     @Epic(value = "Проверка API загрузки изображений")
     @Feature(value = "Удаление изображения")
@@ -16,16 +24,13 @@ public class DeleteImageTests extends BaseTest {
     @Test
     @Description(value = "Удаление в первый раз")
     void deleteImagePositiveTest() {
-        setUp();
         given()
-                .headers(headers)
-                .log()
-                .all()
+                .spec(reqSpecAuth)
                 .when()
-                .delete("/image/{deleteHash}", deleteHash)
+                .delete(Endpoints.getDeleteImageRequest(), deleteHash)
                 .prettyPeek()
                 .then()
-                .statusCode(200);
+                .spec(respSpecPositiveTest);
     }
 
     @Epic(value = "Проверка API загрузки изображений")
@@ -35,14 +40,12 @@ public class DeleteImageTests extends BaseTest {
     @Description(value = "Повторное удаление")
     void deleteImageDoublePositiveTest() {
         given()
-                .headers(headers)
-                .log()
-                .all()
+                .spec(reqSpecAuth)
                 .when()
-                .delete("/image/{deleteHash}", deleteHash)
+                .delete(Endpoints.getDeleteImageRequest(), deleteHash)
                 .prettyPeek()
                 .then()
-                .statusCode(204);
+                .spec(respSpecPositiveTest);
     }
 
     @Epic(value = "Проверка API загрузки изображений")
@@ -51,26 +54,12 @@ public class DeleteImageTests extends BaseTest {
     @Test
     void deleteImageNoauthNegativeTest() {
         given()
-                .log()
-                .all()
+                .spec(reqSpecNoauth)
                 .when()
-                .delete("/image/{deleteHash}", deleteHash)
+                .delete(Endpoints.getDeleteImageRequest(), deleteHash)
                 .prettyPeek()
                 .then()
-                .statusCode(401);
-    }
-
-    private void setUp() {
-        deleteHash = given()
-                .headers(headers)
-                .body(jpgFile)
-                .when()
-                .post("/image")
-                .prettyPeek()
-                .then()
-                .extract()
-                .response()
-                .jsonPath()
-                .getString("data.deletehash");
+                .spec(respSpecNegativeTest)
+                .statusCode(403);
     }
 }
