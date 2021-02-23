@@ -45,7 +45,7 @@ public class DeleteImageTests extends BaseTest {
                 .delete(Endpoints.getDeleteImageRequest(), deleteHash)
                 .prettyPeek()
                 .then()
-                .spec(respSpecPositiveTest);
+                .statusCode(204);
     }
 
     @Epic(value = "Проверка API загрузки изображений")

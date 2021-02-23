@@ -63,7 +63,7 @@ public class PostImageNegativeTests extends BaseTest{
                 .prettyPeek()
                 .then()
                 .spec(respSpecNegativeTest)
-                .statusCode(500);
+                .statusCode(404);
     }
 
     @Epic(value = "Проверка API загрузки изображений")
